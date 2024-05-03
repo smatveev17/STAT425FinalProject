@@ -17,7 +17,6 @@ summary(df)
 
 ```
   
-
 ```{r}
 library(faraway) 
 library(ggplot2) 
@@ -51,11 +50,14 @@ ggplot(df,aes(x=diffinsleeptime,y=Reaction.time))+
 colnames(df)
 
 
-variables_to_keep <- c("last.night.sleep.time", "Reaction.time", "Awake.hours", "Noise.level", "Avg.hours.exercise")
+variables_to_keep <- c("last.night.sleep.time", "Reaction.time", "Awake.hours", "Noise.level", "Avg.hours.exercise","Avg.sleep.time")
 
 dfnumeric = subset(df, select=variables_to_keep)
 pairs(dfnumeric)
 
+```
+```{r}
+cor(dfnumeric)
 ```
 ## 
 ```{r}
@@ -245,8 +247,18 @@ We do have constant variance since p-value is greater than alpha =.05. We fail t
 ### Refit model 1 without 
 
 ```{r}
+library(dplyr)
+
+trimmed_df <- df %>%
+  slice(-c(53, 133,28))
+model1_trimmed=lm(Avg.sleep.time ~ Sport.freq + Game.freq + Avg.hours.exercise, data = trimmed_df)
+summary(model1_trimmed)
 ```
 
 ### Refit model 2
 ```{r}
+trimmed_df2 <- df %>%
+  slice(-c(53, 133,28))
+model2_trimmed = lm(Avg.sleep.time ~ Game.3 + Sport.3 + Avg.hours.exercise, data = trimmed_df2)
+summary(model2_trimmed)
 ```
