@@ -38,8 +38,6 @@ ggplot(df,aes(x=last.night.sleep.time,y=Reaction.time))+
   geom_point()
 ggplot(df,aes(x=Avg.sleep.time,y=Reaction.time))+
   geom_point()
-ggplot(df,aes(x=Awake.hours,y=Reaction.time))+
-  geom_point()
 ggplot(df,aes(x=Noise.level,y=Reaction.time))+
   geom_point()
 ggplot(df,aes(x=diffinsleeptime,y=Reaction.time))+
@@ -47,20 +45,8 @@ ggplot(df,aes(x=diffinsleeptime,y=Reaction.time))+
 
 ```
 
-```{r}
-df$diffinsleeptime = df$Avg.sleep.time - df$last.night.sleep.time
-colnames(df)
-model1 = lm(Reaction.time ~ diffinsleeptime + Awake.hours + Avg.hours.exercise + Noise.level + Fatigue.level, data=df)
-summary(model1)
-
-```
-
 
 ```{r}
-df$diffinsleeptime = df$Avg.sleep.time - df$last.night.sleep.time
-colnames(df)
-model1 = lm(Reaction.time ~ diffinsleeptime + Awake.hours + Avg.hours.exercise + Noise.level + Fatigue.level, data=df)
-summary(model1)
 
 colnames(df)
 
@@ -71,4 +57,195 @@ dfnumeric = subset(df, select=variables_to_keep)
 pairs(dfnumeric)
 
 ```
+## 
+```{r}
+df$diffinsleeptime = df$Avg.sleep.time - df$last.night.sleep.time
+colnames(df)
+model1 = lm(Reaction.time ~ diffinsleeptime + Awake.hours + Avg.hours.exercise + Noise.level + Fatigue.level, data=df)
+summary(model1)
+```
 
+## combining
+```{r}
+library(tidyverse)
+df %>% count(Game.freq)
+df %>% count(Sport.freq)
+df %>% count(Caffein.intake)
+
+df <- df %>%
+mutate(Game.3 = case_when(
+Game.freq %in% c("Several times a week", "Daily")~ "often",
+Game.freq %in% c("Several times a month", "Once a week") ~ "sometimes",
+Game.freq %in% c("Rarely", "Never")~ "rarely"),
+Game.3 = factor(Game.3, levels=c("often", "sometimes", "rarely")))
+
+df <- df %>%
+mutate(Sport.3 = case_when(
+Sport.freq %in% c("Several times a week", "Daily")~ "often",
+Sport.freq %in% c("Several times a month", "Once a week") ~ "sometimes",
+Sport.freq %in% c("Rarely", "Never")~ "rarely"),
+Sport.3 = factor(Sport.3, levels=c("often", "sometimes", "rarely")))
+df
+
+```
+
+## more plots
+```{r}
+ggplot(df,aes(x=Age,y=Avg.sleep.time))+
+  geom_point()
+ggplot(df,aes(x=Avg.hours.exercise,y=Avg.sleep.time))+
+  geom_point()
+
+```
+## Model Building
+```{r}
+library(lmtest)
+model1 = lm(Avg.sleep.time ~ Sport.freq + Game.freq + Avg.hours.exercise, data = df)
+summary(model1)
+
+```
+### Model 1 diagnostics
+```{r}
+par(mfrow=c(2,2))
+plot(model1)
+```
+```{r}
+###high influence
+n=141
+p=12
+lev=influence(model1)$hat
+lev[lev>2*p/n]
+```
+
+```{r}
+library(ggplot2)
+highlight_indices <- c(53, 133, 88)
+
+highlight_df <- df[highlight_indices, ]
+
+ggplot(df, aes(x = Game.freq, y = Avg.sleep.time)) +
+  geom_point(aes(color = "blue"), size = 3) +
+  geom_point(data = df[53,], aes(x = Game.freq, y = Avg.sleep.time), color = "red", size = 3) +
+  geom_point(data = df[133,], aes(x = Game.freq, y = Avg.sleep.time), color = "green", size = 3) +
+  geom_point(data = df[88,], aes(x = Game.freq, y = Avg.sleep.time), color = "black", size = 3)+
+  scale_color_manual(values = c("blue" = "blue", "red" = "red","green"="green", "black" = "black")) +
+  theme_minimal() +
+  labs(title = "Scatter Plot")
+
+
+ggplot(df, aes(x = Sport.freq, y = Avg.sleep.time)) +
+  geom_point(aes(color = "blue"), size = 3) +
+  geom_point(data = df[53,], aes(x = Sport.freq, y = Avg.sleep.time), color = "red", size = 3) +
+  geom_point(data = df[133,], aes(x = Sport.freq, y = Avg.sleep.time), color = "green", size = 3) +
+  geom_point(data = df[88,], aes(x = Sport.freq, y = Avg.sleep.time), color = "black", size = 3) +
+  scale_color_manual(values = c("blue" = "blue", "red" = "red","green"="green", "black" = "black")) +
+  theme_minimal() +
+  labs(title = "Scatter Plot")
+
+
+ggplot(df, aes(x = Avg.hours.exercise, y = Avg.sleep.time)) +
+  geom_point(aes(color = "blue"), size = 3) +
+  geom_point(data = df[53,], aes(x = Avg.hours.exercise, y = Avg.sleep.time), color = "red", size = 3) +
+  geom_point(data = df[133,], aes(x = Avg.hours.exercise, y = Avg.sleep.time), color = "green", size = 3) +
+  geom_point(data = df[88,], aes(x = Avg.hours.exercise, y = Avg.sleep.time), color = "black", size = 3)+
+  scale_color_manual(values = c("blue" = "blue", "red" = "red","green"="green", "black" = "black")) +
+  theme_minimal() +
+  labs(title = "Scatter Plot")
+```
+
+```{r}
+###outliers
+jack=rstudent(model1)
+qt(.05/(2*n),141-1-12)
+```
+```{r}
+##there do not appear to be any outliers but pont 133 is sus
+sort(abs(jack),decreasing=TRUE)[1:8]
+```
+```{r}
+
+```
+
+```{r}
+## there do not appear to be any highly influential observations
+cook=cooks.distance(model1)
+max(cook)
+```
+
+```{r}
+shapiro.test(model1$residuals)
+```
+H0: The normality assumption met
+
+H1: The normality assumption is not met
+
+
+Since p-value is .0895 we do not have enough statistically significant evidence to say that the normality assumption is not met. Thus we fail to reject the null hypothesis at alpha=.05 level
+
+```{r}
+bptest(model1)
+```
+H0: We have constant variance
+
+H1: We do not have constant variance
+
+Since the p-value is .09904 we do not have enough statistically significant evidence to say that the constant variance assumption is not met. Thus we fail to reject the null hypothesis at alpha=.05 level
+
+### Model 2 Diagnostic
+```{r}
+model2 = lm(Avg.sleep.time ~ Game.3 + Sport.3 + Avg.hours.exercise, data = df)
+summary(model2)
+```
+```{r}
+par(mfrow=c(2,2))
+plot(model2)
+```
+```{r}
+###high influence
+n=141
+p=6
+lev=influence(model2)$hat
+lev[lev>2*p/n]
+```
+
+```{r}
+###outliers
+jack=rstudent(model2)
+qt(.05/(2*n),141-1-6)
+```
+```{r}
+##there do not appear to be any outliers but pont 133, 53 is sus
+sort(abs(jack),decreasing=TRUE)[1:5]
+```
+```{r}
+## there do not appear to be any highly influential observations
+cook=cooks.distance(model2)
+max(cook)
+```
+
+```{r}
+shapiro.test(model2$residuals)
+```
+H0: Normality assumption is met
+
+H1: Normality assumption is not met
+
+We do not meet normality assumption in model 2 since our p-value is less than .05. We reject null hypothesis.
+
+```{r}
+bptest(model2)
+```
+H0: We have constant variance
+
+H1: We do not have constant variance
+
+We do have constant variance since p-value is greater than alpha =.05. We fail to reject the null hypothesis.
+
+### Refit model 1 without 
+
+```{r}
+```
+
+### Refit model 2
+```{r}
+```
