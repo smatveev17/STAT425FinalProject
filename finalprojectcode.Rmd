@@ -65,6 +65,7 @@ model1 = lm(Reaction.time ~ diffinsleeptime + Awake.hours + Avg.hours.exercise +
 summary(model1)
 ```
 
+<<<<<<< HEAD
 ## combining
 ```{r}
 library(tidyverse)
