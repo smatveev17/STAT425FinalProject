@@ -1,0 +1,76 @@
+---
+title: "Final Project Code"
+output: html_document
+date: "2024-05-02"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Exploration
+
+```{r}
+
+df =  read.csv("Survey.csv")
+summary(df)
+
+```
+  
+
+```{r}
+library(faraway) 
+library(ggplot2) 
+
+ggplot(df,aes(x=Age))+
+geom_histogram()
+```
+
+## Plots
+
+
+```{r}
+df$diffinsleeptime = df$Avg.sleep.time - df$last.night.sleep.time
+
+ggplot(df,aes(x=Awake.hours,y=Reaction.time))+
+  geom_point()
+ggplot(df,aes(x=last.night.sleep.time,y=Reaction.time))+
+  geom_point()
+ggplot(df,aes(x=Avg.sleep.time,y=Reaction.time))+
+  geom_point()
+ggplot(df,aes(x=Awake.hours,y=Reaction.time))+
+  geom_point()
+ggplot(df,aes(x=Noise.level,y=Reaction.time))+
+  geom_point()
+ggplot(df,aes(x=diffinsleeptime,y=Reaction.time))+
+  geom_point()
+
+```
+
+```{r}
+df$diffinsleeptime = df$Avg.sleep.time - df$last.night.sleep.time
+colnames(df)
+model1 = lm(Reaction.time ~ diffinsleeptime + Awake.hours + Avg.hours.exercise + Noise.level + Fatigue.level, data=df)
+summary(model1)
+
+```
+
+
+
+
+```{r}
+df$diffinsleeptime = df$Avg.sleep.time - df$last.night.sleep.time
+colnames(df)
+model1 = lm(Reaction.time ~ diffinsleeptime + Awake.hours + Avg.hours.exercise + Noise.level + Fatigue.level, data=df)
+summary(model1)
+
+colnames(df)
+
+
+variables_to_keep <- c("last.night.sleep.time", "Reaction.time", "Awake.hours", "Noise.level", "Avg.hours.exercise")
+
+dfnumeric = subset(df, select=variables_to_keep)
+pairs(dfnumeric)
+
+```
+
