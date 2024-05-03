@@ -72,3 +72,6 @@ pairs(dfnumeric)
 
 ```
 
+```{r}
+print("hello world")
+```
