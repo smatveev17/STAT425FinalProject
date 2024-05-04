@@ -31,16 +31,13 @@ geom_histogram()
 ```{r}
 df$diffinsleeptime = df$Avg.sleep.time - df$last.night.sleep.time
 
-ggplot(df,aes(x=Awake.hours,y=Reaction.time))+
+ggplot(df,aes(x=Age,y=Avg.sleep.time))+
   geom_point()
-ggplot(df,aes(x=last.night.sleep.time,y=Reaction.time))+
+ggplot(df,aes(x=Avg.hours.exercise,y=Avg.sleep.time))+
   geom_point()
-ggplot(df,aes(x=Avg.sleep.time,y=Reaction.time))+
-  geom_point()
-ggplot(df,aes(x=Noise.level,y=Reaction.time))+
-  geom_point()
-ggplot(df,aes(x=diffinsleeptime,y=Reaction.time))+
-  geom_point()
+boxplot(Avg.sleep.time ~ Game.freq, data = df, main = "(b) Vertical")
+
+
 
 ```
 
@@ -98,12 +95,13 @@ ggplot(df,aes(x=Age,y=Avg.sleep.time))+
   geom_point()
 ggplot(df,aes(x=Avg.hours.exercise,y=Avg.sleep.time))+
   geom_point()
+boxplot(Avg.sleep.time ~ Game.3, data = df, main = "(b) Vertical")
 
 ```
 ## Model Building
 ```{r}
 library(lmtest)
-model1 = lm(Avg.sleep.time ~ Sport.freq + Game.freq + Avg.hours.exercise, data = df)
+model1 = lm(Avg.sleep.time ~ Age + Game.3 + Avg.hours.exercise, data = df)
 summary(model1)
 
 ```
@@ -136,11 +134,11 @@ ggplot(df, aes(x = Game.freq, y = Avg.sleep.time)) +
   labs(title = "Scatter Plot")
 
 
-ggplot(df, aes(x = Sport.freq, y = Avg.sleep.time)) +
+ggplot(df, aes(x = Age, y = Avg.sleep.time)) +
   geom_point(aes(color = "blue"), size = 3) +
-  geom_point(data = df[53,], aes(x = Sport.freq, y = Avg.sleep.time), color = "red", size = 3) +
-  geom_point(data = df[133,], aes(x = Sport.freq, y = Avg.sleep.time), color = "green", size = 3) +
-  geom_point(data = df[88,], aes(x = Sport.freq, y = Avg.sleep.time), color = "black", size = 3) +
+  geom_point(data = df[53,], aes(x = Age, y = Avg.sleep.time), color = "red", size = 3) +
+  geom_point(data = df[133,], aes(x = Age, y = Avg.sleep.time), color = "green", size = 3) +
+  geom_point(data = df[88,], aes(x = Age, y = Avg.sleep.time), color = "black", size = 3) +
   scale_color_manual(values = c("blue" = "blue", "red" = "red","green"="green", "black" = "black")) +
   theme_minimal() +
   labs(title = "Scatter Plot")
@@ -261,4 +259,8 @@ trimmed_df2 <- df %>%
   slice(-c(53, 133,28))
 model2_trimmed = lm(Avg.sleep.time ~ Game.3 + Sport.3 + Avg.hours.exercise, data = trimmed_df2)
 summary(model2_trimmed)
+```
+## add age to model remove sport compare both then use aic for one model and bic for the other
+```{r}
+
 ```
