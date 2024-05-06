@@ -44,6 +44,8 @@ library(tidyverse)
 df %>% count(Input.device)
 ```
 
+The numeric variables that appear to be the most correlated with Reaction.time are Avg.hours.exercise, Avg.sleep.time, Age, and Noise.level. We may also consider and interaction between sleep and Input device type which may affect the reaction time.
+
 ## Combining multiple levels in Input.type to just 2 (button vs touch screen)
 ```{r}
 
@@ -161,9 +163,9 @@ Since lambda=-.05, we will take the inverse square root of the Y variable (React
 
 ```{r}
 library(dplyr)
-df$Inverse.Reaction.time <- (1/sqrt(df$Reaction.time))
+df$Inverse.Sq.Reaction.time <- (1/sqrt(df$Reaction.time))
 
-model1_updated =lm(Inverse.Reaction.time~ Avg.hours.exercise + Avg.sleep.time + Age+ Noise.level,data=df)
+model1_updated =lm(Inverse.Sq.Reaction.time~ Avg.hours.exercise + Avg.sleep.time + Age+ Noise.level,data=df)
 summary(model1_updated)
 
 ```
@@ -229,14 +231,14 @@ best_backward_model
 ```
 
 ```{r}
-backward_model = lm(Inverse.Reaction.time~Avg.hours.exercise+Avg.sleep.time+Age, data=df)
+backward_model = lm(Inverse.Sq.Reaction.time~Avg.hours.exercise+Avg.sleep.time+Age, data=df)
 
 ```
 
 ## Interaction model
 
 ```{r}
-model2 = lm(Inverse.Reaction.time~ Avg.hours.exercise+ Age+Noise.level+Avg.sleep.time*Input.type,data=df)
+model2 = lm(Inverse.Sq.Reaction.time~ Avg.hours.exercise+ Age+Noise.level+Avg.sleep.time*Input.type,data=df)
 summary(model2)
 ```
 
