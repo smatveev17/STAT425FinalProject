@@ -47,7 +47,7 @@ boxplot(Avg.sleep.time ~ Game.freq, data = df, main = "(b) Vertical")
 colnames(df)
 
 
-variables_to_keep <- c("last.night.sleep.time", "Reaction.time", "Awake.hours", "Noise.level", "Avg.hours.exercise","Avg.sleep.time")
+variables_to_keep <- c("last.night.sleep.time", "Reaction.time", "Awake.hours", "Noise.level", "Avg.hours.exercise","Avg.sleep.time","Age")
 
 dfnumeric = subset(df, select=variables_to_keep)
 pairs(dfnumeric)
@@ -56,51 +56,53 @@ pairs(dfnumeric)
 ```{r}
 cor(dfnumeric)
 ```
-## 
 ```{r}
 df$diffinsleeptime = df$Avg.sleep.time - df$last.night.sleep.time
 colnames(df)
-model1 = lm(Reaction.time ~ diffinsleeptime + Awake.hours + Avg.hours.exercise + Noise.level + Fatigue.level, data=df)
-summary(model1)
+
+```
+```{r}
+library(tidyverse)
+df %>% count(Input.device)
 ```
 
 ## combining
 ```{r}
-library(tidyverse)
-df %>% count(Game.freq)
-df %>% count(Sport.freq)
-df %>% count(Caffein.intake)
+# library(tidyverse)
+# df %>% count(Game.freq)
+# df %>% count(Sport.freq)
+# df %>% count(Caffein.intake)
+# 
+# df <- df %>%
+# mutate(Game.3 = case_when(
+# Game.freq %in% c("Several times a week", "Daily")~ "often",
+# Game.freq %in% c("Several times a month", "Once a week") ~ "sometimes",
+# Game.freq %in% c("Rarely", "Never")~ "rarely"),
+# Game.3 = factor(Game.3, levels=c("often", "sometimes", "rarely")))
 
-df <- df %>%
-mutate(Game.3 = case_when(
-Game.freq %in% c("Several times a week", "Daily")~ "often",
-Game.freq %in% c("Several times a month", "Once a week") ~ "sometimes",
-Game.freq %in% c("Rarely", "Never")~ "rarely"),
-Game.3 = factor(Game.3, levels=c("often", "sometimes", "rarely")))
-
-df <- df %>%
-mutate(Sport.3 = case_when(
-Sport.freq %in% c("Several times a week", "Daily")~ "often",
-Sport.freq %in% c("Several times a month", "Once a week") ~ "sometimes",
-Sport.freq %in% c("Rarely", "Never")~ "rarely"),
-Sport.3 = factor(Sport.3, levels=c("often", "sometimes", "rarely")))
-df
+# df <- df %>%
+# mutate(Sport.3 = case_when(
+# Sport.freq %in% c("Several times a week", "Daily")~ "often",
+# Sport.freq %in% c("Several times a month", "Once a week") ~ "sometimes",
+# Sport.freq %in% c("Rarely", "Never")~ "rarely"),
+# Sport.3 = factor(Sport.3, levels=c("often", "sometimes", "rarely")))
+# df
 
 ```
 
 ## more plots
 ```{r}
-ggplot(df,aes(x=Age,y=Avg.sleep.time))+
-  geom_point()
-ggplot(df,aes(x=Avg.hours.exercise,y=Avg.sleep.time))+
-  geom_point()
-boxplot(Avg.sleep.time ~ Game.3, data = df, main = "(b) Vertical")
+# ggplot(df,aes(x=Age,y=Avg.sleep.time))+
+#   geom_point()
+# ggplot(df,aes(x=Avg.hours.exercise,y=Avg.sleep.time))+
+#   geom_point()
+# boxplot(Avg.sleep.time ~ Game.3, data = df, main = "(b) Vertical")
 
 ```
 ## Model Building
 ```{r}
 library(lmtest)
-model1 = lm(Avg.sleep.time ~ Age + Game.freq + Avg.hours.exercise, data = df)
+model1 = lm(Reaction.time~ Avg.hours.exercise+ Avg.sleep.time+Age+Input.device,data=df)
 summary(model1)
 
 ```
@@ -121,60 +123,24 @@ plot(lev)
 abline(h=2*p/n)
 ```
 ```{r}
-halfnorm(lev,14, labs=row.names(df),ylab="leverages")
+halfnorm(lev,4, labs=row.names(df),ylab="leverages")
 ```
-Row 104 and 70 could cause potential problems, we may consider removing them and refitting the model.
+Row 112 may be very problematic and could be removed
 ```{r}
 ###outliers
 jack=rstudent(model1)
 qt(.05/(2*n),141-1-8)
 ```
 ```{r}
-##there do not appear to be any outliers but point 133 and 53 are sus
+##there appears to be one outlier at point 91, we should remove it and refit the model
+### should you actually though?
 sort(abs(jack),decreasing=TRUE)[1:8]
 ```
-```{r}
-# library(ggplot2)
-# highlight_indices <- c(53, 133, 104,70)
-# 
-# highlight_df <- df[highlight_indices, ]
-# 
-# ggplot(df, aes(x = Game.freq, y = Avg.sleep.time)) +
-#   geom_point(aes(color = "blue"), size = 3) +
-#   geom_point(data = df[53,], aes(x = Game.freq, y = Avg.sleep.time), color = "red", size = 3) +
-#   geom_point(data = df[133,], aes(x = Game.freq, y = Avg.sleep.time), color = "green", size = 3) +
-#   geom_point(data = df[104,], aes(x = Game.freq, y = Avg.sleep.time), color = "black", size = 3)+
-#     geom_point(data = df[70,], aes(x = Game.freq, y = Avg.sleep.time), color = "purple", size = 3)+
 
-#   scale_color_manual(values = c("blue" = "blue", "red" = "red","green"="green", "black" = "black","purple"="purple")) +
-#   theme_minimal() +
-#   labs(title = "Scatter Plot")
-# 
-# 
-# ggplot(df, aes(x = Age, y = Avg.sleep.time)) +
-#   geom_point(aes(color = "blue"), size = 3) +
-#   geom_point(data = df[53,], aes(x = Avg.sleep.time, y = Avg.sleep.time), color = "red", size = 3) +
-#   geom_point(data = df[133,], aes(x = Avg.sleep.time, y = Avg.sleep.time), color = "green", size = 3) +
-#   geom_point(data = df[104,], aes(x = Avg.sleep.time, y = Avg.sleep.time), color = "black", size = 3)+
-#     geom_point(data = df[70,], aes(x = Avg.sleep.time, y = Avg.sleep.time), color = "purple", size = 3)+
-#   scale_color_manual(values = c("blue" = "blue", "red" = "red","green"="green", "black" = "black","purple"="purple")) +
-#   labs(title = "Scatter Plot")
-# 
-# 
-# ggplot(df, aes(x = Avg.hours.exercise, y = Avg.sleep.time)) +
-#  geom_point(aes(color = "blue"), size = 3) +
-#   geom_point(data = df[53,], aes(x = Avg.hours.exercise, y = Avg.sleep.time), color = "red", size = 3) +
-#   geom_point(data = df[133,], aes(x = Avg.hours.exercise, y = Avg.sleep.time), color = "green", size = 3) +
-#   geom_point(data = df[104,], aes(x = Avg.hours.exercise, y = Avg.sleep.time), color = "black", size = 3)+
-#     geom_point(data = df[70,], aes(x = Avg.hours.exercise, y = Avg.sleep.time), color = "purple", size = 3)+
-#   scale_color_manual(values = c("blue" = "blue", "red" = "red","green"="green", "black" = "black","purple"="purple")) +
-#   theme_minimal() +
-#   labs(title = "Scatter Plot")
-
-```
 
 ```{r}
-## there do not appear to be any highly influential observations
+## there do not appear to be any highly influential observations????
+### what happened here
 cook=cooks.distance(model1)
 max(cook)
 ```
@@ -190,7 +156,7 @@ H0: The normality assumption met
 H1: The normality assumption is not met
 
 
-Since p-value is .03453 we have enough statistically significant evidence to say that the normality assumption is not met. Thus we reject the null hypothesis at alpha=.05 level and conclude we do not meet the normality assumption.
+Since p-value is 1.687x10^-07 we have enough statistically significant evidence to say that the normality assumption is not met. Thus we reject the null hypothesis at alpha=.05 level and conclude we do not meet the normality assumption.
 
 ```{r}
 bptest(model1)
@@ -199,209 +165,57 @@ H0: We have constant variance
 
 H1: We do not have constant variance
 
-Since the p-value is .6664 we do not have enough statistically significant evidence to say that the constant variance assumption is not met. Thus we fail to reject the null hypothesis at alpha=.05 level
+Since the p-value is .1644 we do not have enough statistically significant evidence to say that the constant variance assumption is not met. Thus we fail to reject the null hypothesis at alpha=.05 level
 
-We will remove point 133 and check model assumptions
-
-### Refit Model 1 without obs 133
-
-```{r}
-library(dplyr)
-
-trimmed_df1 <- df %>%
-  slice(-c(133))
-model1_trimmed = lm(Avg.sleep.time ~ Age + Game.freq + Avg.hours.exercise, data = trimmed_df1)
-summary(model1_trimmed)
-```
-```{r}
-### let recheck our model diagnostics
-par(mfrow=c(2,2))
-plot(model1_trimmed)
-```
-```{r}
-#checking influence again
-n=140
-p=8
-lev=influence(model1_trimmed)$hat
-lev[lev>2*p/n]
-
-```
-```{r}
-plot(lev)
-abline(h=2*p/n)
-
-```
-```{r}
-halfnorm(lev,15, labs=row.names(trimmed_df1),ylab="leverages")
-```
-
-```{r}
-jack=rstudent(model1_trimmed)
-qt(.05/(2*n),140-1-8)
-
-```
-```{r}
-## none of these points appear to be outside the outlier range of (-3.666764,3.665764) but point 53 is sus
-sort(abs(jack),decreasing=TRUE)[1:10]
-```
-
-```{r}
-cook=cooks.distance(model1_trimmed)
-max(cook)
-
-```
-```{r}
-halfnorm(cook,labs=row.names(trimmed_df1),ylab="Cook's distances")
-
-```
-
-```{r}
-shapiro.test(model1_trimmed$residuals)
-
-```
-H0: The normality assumption met
-
-H1: The normality assumption is not met
-
-
-Since p-value is .02376 we have enough statistically significant evidence to say that the normality assumption is not met. Thus we reject the null hypothesis at alpha=.05 level and conclude we do not meet the normality assumption.
-```{r}
-bptest(model1_trimmed)
-```
-H0: We have constant variance
-
-H1: We do not have constant variance
-
-Since the p-value is .5125 we do not have enough statistically significant evidence to say that the constant variance assumption is not met. Thus we fail to reject the null hypothesis at alpha=.05 level
-
-## Refit Model 1 without obs 53
-```{r}
-library(dplyr)
-
-trimmed_df2 <- trimmed_df1 %>%
-  slice(-c(53))
-model1_trimmed2 = lm(Avg.sleep.time ~ Age + Game.freq + Avg.hours.exercise, data = trimmed_df2)
-summary(model1_trimmed2)
-```
-
-```{r}
-### let recheck our model diagnostics
-par(mfrow=c(2,2))
-plot(model1_trimmed2)
-```
-```{r}
-#checking influence again
-n=139
-p=8
-lev=influence(model1_trimmed2)$hat
-lev[lev>2*p/n]
-
-```
-```{r}
-plot(lev)
-abline(h=2*p/n)
-
-```
-
-```{r}
-halfnorm(lev,11, labs=row.names(trimmed_df2),ylab="leverages")
-```
-
-```{r}
-jack=rstudent(model1_trimmed2)
-qt(.05/(2*n),139-1-8)
-
-```
-```{r}
-## none of these points appear to be outside the outlier range of (-3.664494,3.664494)
-sort(abs(jack),decreasing=TRUE)[1:10]
-```
-
-```{r}
-cook=cooks.distance(model1_trimmed2)
-max(cook)
-
-```
-```{r}
-halfnorm(cook,labs=row.names(trimmed_df2),ylab="Cook's distances")
-
-```
-
-```{r}
-shapiro.test(model1_trimmed2$residuals)
-
-```
-H0: The normality assumption met
-
-H1: The normality assumption is not met
-
-
-Since p-value is .006 we have enough statistically significant evidence to say that the normality assumption is not met. Thus we reject the null hypothesis at alpha=.05 level and conclude we do not meet the normality assumption.
-```{r}
-bptest(model1_trimmed2)
-```
-H0: We have constant variance
-
-H1: We do not have constant variance
-
-Since the p-value is .4808 we do not have enough statistically significant evidence to say that the constant variance assumption is not met. Thus we fail to reject the null hypothesis at alpha=.05 level
-
-Thus we meet the constant variance assumption but do not meet the normality assumption in our model.
 ## Variable selection backwards stepwise
 ```{r}
 library(olsrr)
-best_backward_model<- ols_step_backward_p(model1_trimmed2, p_value = 0.15, details = FALSE)
+best_backward_model<- ols_step_backward_p(model1, p_value = 0.15, details = FALSE)
 best_backward_model
 ```
-```{r}
-trimmed_df2$Game.freq <- factor(trimmed_df2$Game.freq)
 
-levels_to_include <- c("Daily","Never", "Once a week", "Rarely", "Several times a month", "Several times a week")
-
-subset_df <- subset(trimmed_df2, Game.freq %in% levels_to_include)
-
-best_backwards_model_step <- lm(Avg.sleep.time ~ Game.freq + Avg.hours.exercise, data = subset_df)
-summary(best_backwards_model_step)
-```
 ## Best AIC model
 ```{r}
-library(stats)
-library(leaps)
-## Warning: package ’leaps’ was built under R version 4.3.3
-b = regsubsets(Avg.sleep.time ~ Age + Game.freq + Avg.hours.exercise, data = trimmed_df2)
-rs = summary(b)
-rs$which
+# library(stats)
+# library(leaps)
+# ## Warning: package ’leaps’ was built under R version 4.3.3
+# b = regsubsets(Avg.sleep.time ~ Age + Game.freq + Avg.hours.exercise, data = df)
+# rs = summary(b)
+# rs$which
 ```
 
 ```{r}
-n=dim(trimmed_df2)[1]
-msize = 1:7
-Aic= n*log(rs$rss/n)+2*msize
-Aic
+# n=dim(df)[1]
+# msize = 1:7
+# Aic= n*log(rs$rss/n)+2*msize
+# Aic
 ```
 
 ```{r}
-plot(msize, Aic, xlab="Number of params", ylab="AIC")
+# plot(msize, Aic, xlab="Number of params", ylab="AIC")
 ```
 
+
+## Interaction model
+
 ```{r}
-trimmed_df2$Game.freq <- factor(trimmed_df2$Game.freq)
-
-levels_to_include <- c("Daily","Never", "Once a week")
-
-subset_df <- subset(trimmed_df2, Game.freq %in% levels_to_include)
-
-best_aic_model <- lm(Avg.sleep.time ~ Game.freq + Avg.hours.exercise, data = subset_df)
-summary(best_aic_model)
+### do you need to do diagnostics?
+model2 = lm(Reaction.time~ Avg.hours.exercise+ Age+Avg.sleep.time*Input.device,data=df)
+summary(model2)
 ```
 
 ## Model comparison
 
 ```{r}
-anova(model1_trimmed2,best_backwards_model_step)
+anova(model1, model2)
 ```
 ```{r}
+anova(model1)
+```
+```{r}
+anova(model2)
 ```
 
-```{r}
-```
+
+
+
