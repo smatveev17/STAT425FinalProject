@@ -92,11 +92,14 @@ df %>% count(Input.device)
 
 ## more plots
 ```{r}
-# ggplot(df,aes(x=Age,y=Avg.sleep.time))+
-#   geom_point()
-# ggplot(df,aes(x=Avg.hours.exercise,y=Avg.sleep.time))+
-#   geom_point()
-# boxplot(Avg.sleep.time ~ Game.3, data = df, main = "(b) Vertical")
+library(ggplot2)
+ggplot(df,aes(x=Age,y=Reaction.time))+
+  geom_point()
+ggplot(df,aes(x=Avg.hours.exercise,y=Reaction.time))+
+  geom_point()
+ggplot(df,aes(x=Avg.sleep.time,y=Reaction.time))+
+  geom_point()
+boxplot(Reaction.time ~ Input.device, data = df, main = "(b) Vertical")
 
 ```
 ## Model Building
@@ -173,7 +176,7 @@ library(olsrr)
 best_backward_model<- ols_step_backward_p(model1, p_value = 0.15, details = FALSE)
 best_backward_model
 ```
-
+The reduced model has a better adj R^2 than the full model
 ## Best AIC model
 ```{r}
 # library(stats)
@@ -209,6 +212,7 @@ summary(model2)
 ```{r}
 anova(model1, model2)
 ```
+The interaction term between sleep time and input device is significant and we prefer the interaction term model
 ```{r}
 anova(model1)
 ```
