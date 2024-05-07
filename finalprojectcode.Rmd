@@ -30,7 +30,7 @@ library(ggplot2)
 library(GGally)
 colnames(df)
 ```
-Created a subset of the df that contains the numeric variables that we are interested in analyzing.Then created a pairwise scatterplot matrix we can see that. We were trying to get an idea of the variables that were highly correlated and we could see that no 2 variablers were highly correlated. 
+Created a subset of the df that contains the numeric variables that we are interested in analyzing.Then created a pairwise scatterplot matrix we can see that. We were trying to get an idea of the variables that were highly correlated and we could see that no 2 variables were highly correlated. 
 ```{r}
 variables_to_keep <- c("last.night.sleep.time", "Reaction.time", "Awake.hours", "Noise.level", "Avg.hours.exercise","Avg.sleep.time","Age")
 
@@ -250,8 +250,8 @@ backward_model = lm(Inverse.Sq.Reaction.time~Avg.hours.exercise+Avg.sleep.time+A
 ## Interaction model
 
 ```{r}
-model2 = lm(Reaction.time~ Avg.hours.exercise+ Age+Noise.level+Avg.sleep.time*Input.type,data=df)
-summary(model2)
+interaction_model = lm(Reaction.time~ Avg.hours.exercise+ Age+Noise.level+Avg.sleep.time*Input.type,data=df)
+summary(interaction_model)
 ```
 ## Model Comparison
 
@@ -262,7 +262,7 @@ anova(model1_updated)
 ```
 
 ```{r}
-anova(model2)
+anova(interaction_model)
 ```
 
 ### Best AIC model
@@ -270,7 +270,7 @@ anova(model2)
 AIC(model1)
 ```
 ```{r}
-AIC(model2)
+AIC(interaction_model)
 ```
 
 ```{r}
@@ -288,7 +288,7 @@ Based on the AIC criteria, the best model is the backwards selection model. When
 BIC(model1_updated)
 ```
 ```{r}
-BIC(model2)
+BIC(interaction_model)
 ```
 ```{r}
 BIC(backward_model)
