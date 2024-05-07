@@ -224,6 +224,9 @@ Since the p-value is .5382 we do not have enough statistically significant evide
 Applying the inverse transformation to the Y variable (Reaction time) appears to have fixed the problems with our assumptions.
 
 ## Variable selection backwards stepwise
+
+### Backwards selection
+
 ```{r}
 library(olsrr)
 best_backward_model<- ols_step_backward_p(model1_updated, p_value = 0.15, details = FALSE)
@@ -235,45 +238,16 @@ backward_model = lm(Inverse.Sq.Reaction.time~Avg.hours.exercise+Avg.sleep.time+A
 
 ```
 
+
 ## Interaction model
 
 ```{r}
-model2 = lm(Inverse.Sq.Reaction.time~ Avg.hours.exercise+ Age+Noise.level+Avg.sleep.time*Input.type,data=df)
+model2 = lm(Reaction.time~ Avg.hours.exercise+ Age+Noise.level+Avg.sleep.time*Input.type,data=df)
 summary(model2)
 ```
+## Model Comparison
 
-## Model comparison
-
-```{r}
-anova(model1_updated,model2)
-```
-H0: The reduced model is sufficient
-
-H1: We require the full model
-
-Since p-value is less than .05, we require the full model with the interaction term
-
-```{r}
-anova(backward_model, model1_updated)
-
-```
-
-H0: The reduced model is sufficient
-
-H1: We require the full model
-
-Since p-value is greater than .05, the reduced model is sufficient and we do not require the full model (Noise level not needed)
-
-```{r}
-anova(backward_model, model2)
-```
-
-H0: The reduced model is sufficient
-
-H1: We require the full model
-
-Since p-value is greater than .05, the reduced model is sufficient and we do not require the full model (Noise level not needed)
-
+### Sequential ANOVA
 
 ```{r}
 anova(model1_updated)
@@ -283,21 +257,25 @@ anova(model1_updated)
 anova(model2)
 ```
 
-## Best AIC model
+### Best AIC model
 ```{r}
-AIC(model1_updated)
+AIC(model1)
+```
+```{r}
+AIC(model2)
 ```
 
 ```{r}
-AIC(model2)
+AIC(model1_updated)
 ```
 
 ```{r}
 AIC(backward_model)
 ```
 
-Based on the AIC criteria, the best model is model 2 which has the interaction term
-## Best BIC model
+Based on the AIC criteria, the best model is the backwards selection model. When comparing models that fit to the orignal, nontransformed reaction time variable, the best model is the interaction model.
+
+### Best BIC model
 ```{r}
 BIC(model1_updated)
 ```
@@ -307,8 +285,22 @@ BIC(model2)
 ```{r}
 BIC(backward_model)
 ```
+Based on the BIC criterion, the best model is also the backwards model. This makes sense as the BIC criterion prefers smaller models and is more conservative due to the nlogn selection method.
 
-Based on the BIC criterion, the best model is the backward model which makes sense as BIC criterion is more conservative and prefers smaller models due to the selection parameter of nlog(n)
+### Nested Model Comparison
+
+```{r}
+anova(backward_model, model1_updated)
+```
+
+H0: The reduced model is sufficient
+
+H1: We require the full model
+
+Since p-value is greater than .05, the reduced model is sufficient and we do not require the full model (Noise level not needed)
+
+Thus our best model through F test and AIC/BIC criterion is the reduced model Inverse.Sq.Reaction.time ~ Avg.hours.exercise + Avg.sleep.time + Age
+
 
 
 
