@@ -10,6 +10,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Exploration
 
+
+Summary of df just to get an better idea of the data we have. We can see spread of the data also.
 ```{r}
 df =  read.csv("Survey.csv")
 summary(df)
@@ -28,6 +30,7 @@ library(ggplot2)
 library(GGally)
 colnames(df)
 ```
+Created a subset of the df that contains the numeric variables that we are interested in analyzing.Then created a pairwise scatterplot matrix we can see that. We were trying to get an idea of the variables that were highly correlated and we could see that no 2 variablers were highly correlated. 
 ```{r}
 variables_to_keep <- c("last.night.sleep.time", "Reaction.time", "Awake.hours", "Noise.level", "Avg.hours.exercise","Avg.sleep.time","Age")
 
@@ -59,6 +62,9 @@ df %>% count(Input.type)
 ```
 
 ## Plotting variables of interest
+
+
+
 ```{r}
 library(ggplot2)
 
@@ -85,6 +91,8 @@ ggplot(df, aes(x = Input.type, y = Reaction.time)) +
   ggtitle("Reaction Time by Input Type")
 
 ```
+
+
 ## Model Building
 ```{r}
 library(lmtest)
