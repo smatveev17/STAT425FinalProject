@@ -30,7 +30,7 @@ library(ggplot2)
 library(GGally)
 colnames(df)
 ```
-Created a subset of the df that contains the numeric variables that we are interested in analyzing.Then created a pairwise scatterplot matrix we can see that. We were trying to get an idea of the variables that were highly correlated and we could see that no 2 variables were highly correlated. 
+Created a subset of the df that contains the numeric variables that we are interested in analyzing.Then created a pairwise scatterplot matrix we can see that. We are trying to get an idea of the variables that were highly correlated and we could see that no 2 variables were highly correlated. 
 ```{r}
 variables_to_keep <- c("last.night.sleep.time", "Reaction.time", "Awake.hours", "Noise.level", "Avg.hours.exercise","Avg.sleep.time","Age")
 
@@ -38,18 +38,23 @@ dfnumeric = subset(df, select=variables_to_keep)
 ggpairs(dfnumeric)
 
 ```
+## Numeric Correlation Matrix
 ```{r}
 cor(dfnumeric)
 ```
+
+
+The numeric variables that appear to be the most correlated with Reaction.time are Avg.hours.exercise, Avg.sleep.time, Age, and Noise.level. We may also consider and interaction between sleep and Input device type which may affect the reaction time.
+
 
 ```{r}
 library(tidyverse)
 df %>% count(Input.device)
 ```
 
-The numeric variables that appear to be the most correlated with Reaction.time are Avg.hours.exercise, Avg.sleep.time, Age, and Noise.level. We may also consider and interaction between sleep and Input device type which may affect the reaction time.
+The input device may affect the reaction time recorded as touch screens may have more input delay than mice or keyboards. We can see that there are several outlier categories so we will combine the various inputs into two levels, button and touch screen.
 
-## Combining multiple levels in Input.type to just 2 (button vs touch screen)
+## Combining multiple levels of Input.device
 ```{r}
 
  df <- df %>%
@@ -62,7 +67,6 @@ df %>% count(Input.type)
 ```
 
 ## Plotting variables of interest
-
 
 
 ```{r}
@@ -106,7 +110,7 @@ par(mfrow=c(2,2))
 plot(model1)
 ```
 ```{r}
-###high influence
+###high leverage
 n=141
 p=5
 lev=influence(model1)$hat
@@ -121,12 +125,12 @@ There are some high leverage points, we should examine them closer
 halfnorm(lev,4, labs=row.names(df),ylab="leverages")
 ```
 ```{r}
-###outliers
+### looking for outliers
 jack=rstudent(model1)
 qt(.05/(2*n),141-1-5)
 ```
 ```{r}
-##no outliers appear to be in the dataset
+##no outliers appear to be in the dataset as no points are outside of the interval (-3.664862,3.664862)
 sort(abs(jack),decreasing=TRUE)[1:8]
 ```
 
@@ -141,6 +145,7 @@ halfnorm(cook,labs=row.names(df),ylab="Cook's distances")
 ```
 
 ```{r}
+## conducting normality test
 shapiro.test(model1$residuals)
 ```
 H0: The normality assumption met
@@ -151,6 +156,7 @@ H1: The normality assumption is not met
 Since p-value is 6.923x10^-06 we have enough statistically significant evidence to say that the normality assumption is not met. Thus we reject the null hypothesis at alpha=.05 level and conclude we do not meet the normality assumption.
 
 ```{r}
+## conducting constant variance test
 bptest(model1)
 ```
 H0: We have constant variance
@@ -183,7 +189,7 @@ plot(model1_updated)
 ```
 
 ```{r}
-###high influence
+###high leverage
 n=141
 p=5
 lev=influence(model1_updated)$hat
@@ -202,7 +208,7 @@ sort(abs(jack),decreasing=TRUE)[1:8]
 ```
 
 ```{r}
-## there do not appear to be any high influence points
+## there do not appear to be any high influence points since the largest cook's distance is less than 1
 cook=cooks.distance(model1_updated)
 max(cook)
 ```
@@ -237,6 +243,7 @@ Applying the inverse transformation to the Y variable (Reaction time) appears to
 
 ```{r}
 library(olsrr)
+## we will apply stepwise backwards selection to find the best model
 best_backward_model<- ols_step_backward_p(model1_updated, p_value = 0.15, details = FALSE)
 best_backward_model
 ```
@@ -250,20 +257,11 @@ backward_model = lm(Inverse.Sq.Reaction.time~Avg.hours.exercise+Avg.sleep.time+A
 ## Interaction model
 
 ```{r}
+# we will test an interaction model with the input type variable interacting with the average sleep time to see if there is an effect and if the model produced is a better predictor of reaction time
 interaction_model = lm(Reaction.time~ Avg.hours.exercise+ Age+Noise.level+Avg.sleep.time*Input.type,data=df)
 summary(interaction_model)
 ```
 ## Model Comparison
-
-### Sequential ANOVA
-
-```{r}
-anova(model1_updated)
-```
-
-```{r}
-anova(interaction_model)
-```
 
 ### Best AIC model
 ```{r}
@@ -288,14 +286,20 @@ Based on the AIC criteria, the best model is the backwards selection model. When
 BIC(model1_updated)
 ```
 ```{r}
+BIC(model1)
+```
+```{r}
 BIC(interaction_model)
 ```
 ```{r}
 BIC(backward_model)
 ```
-Based on the BIC criterion, the best model is also the backwards model. This makes sense as the BIC criterion prefers smaller models and is more conservative due to the nlogn selection method.
+Based on the BIC criterion, the best model is also the backwards model. 
+Between the interaction and the original model, the smaller model is preferred without the interaction term. This makes sense as the BIC criterion prefers smaller models and is more conservative due to the nlogn selection method.
 
 ### Nested Model Comparison
+
+Since the backward model and model1_updated are nested, we can use partial Ftest to compare them through the anova function.
 
 ```{r}
 anova(backward_model, model1_updated)
